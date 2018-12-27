@@ -7,17 +7,17 @@
 	class Socket extends WebSocket.Server {
 		constructor({port = 3000} = {}) {
 			super({port});
-			this.socket = null;
+			this.client = null;
 		}
 
 		async connect() {
+			const rl = readline.createInterface(process.stdin, process.stdout);
 			return new Promise(resolve => {
-				this.on('connection', ws => {
-					const rl = readline.createInterface(process.stdin, process.stdout);
-					this.socket = ws;
+				this.on('connection', client => {
+					this.client = client;
 					rl.on('line', txt => this.send({message: txt, event: 'message'}));
 					rl.on('close', () => process.exit(0));
-					ws.on('message', msg => {
+					this.client.on('message', msg => {
 						try {
 							const {time, event, text} = JSON.parse(msg);
 							const date	= new Date(time);
@@ -31,14 +31,13 @@
 							console.error(err);
 						}
 					});
-					this.socket = ws;
 					resolve(this);
 				});
 			});
 		}
 
 		send({message = '', event = 'message'} = {}) {
-			this.socket.send(JSON.stringify({message, event}));
+			this.client.send(JSON.stringify({message, event}));
 		}
 
 		message(message) {
