@@ -1,0 +1,29 @@
+{
+  "name": "yaca-server",
+  "version": "1.0.0",
+  "description": "Server code for Yet Another Chat App",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shgysk8zer0/yaca-server.git"
+  },
+  "keywords": [
+    "chat",
+    "yaca",
+    "websockets",
+    "ws"
+  ],
+  "author": "Chris Zuber <shgysk8zer0@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/shgysk8zer0/yaca-server/issues"
+  },
+  "homepage": "https://github.com/shgysk8zer0/yaca-server#readme",
+  "dependencies": {
+    "ws": "^6.1.2"
+  }
+}
