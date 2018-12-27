@@ -49,6 +49,7 @@
 			this.send({event: 'ping'});
 		}
 	}
+
 	const socket = new Socket({port});
 	server.on('upgrade', socket.handleUpgrade);
 	console.log(`Listening on port ${port}`);
