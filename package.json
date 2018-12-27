@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "eslint .",
+    "fix": "eslint . --fix"
   },
   "repository": {
     "type": "git",
@@ -25,5 +26,10 @@
   "homepage": "https://github.com/shgysk8zer0/yaca-server#readme",
   "dependencies": {
     "ws": "^6.1.2"
+  },
+  "devDependencies": {
+    "eslint": "^5.7.0",
+    "eslint-plugin-async-await": "0.0.0",
+    "eslint-plugin-babel": "^5.2.1"
   }
 }
