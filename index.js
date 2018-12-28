@@ -1,58 +1,43 @@
-(async ({port = 3000} = {}) => {
+(async (...args) => {
 	const WebSocket = require('ws');
-	const http = require('http');
-	const readline = require('readline');
-	const server = http.createServer();
+	const http      = require('http');
+	const readline  = require('readline');
 
 	class Socket extends WebSocket.Server {
-		constructor({port = 3000} = {}) {
-			super({port});
-			this.client = null;
+		constructor(...args) {
+			super(...args);
 		}
 
-		async connect() {
+		static async connect(server = http.createServer(), ...args) {
+			const socket = new Socket(...args);
+			server.on('upgrade', socket.handleUpgrade);
+			console.log(`Listening on ${socket.options.host || '*'}:${socket.options.port}`);
 			const rl = readline.createInterface(process.stdin, process.stdout);
-			return new Promise(resolve => {
-				this.on('connection', client => {
-					this.client = client;
-					rl.on('line', txt => this.send({message: txt, event: 'message'}));
-					rl.on('close', () => process.exit(0));
-					this.client.on('message', msg => {
-						try {
-							const {time, event, text} = JSON.parse(msg);
-							const date	= new Date(time);
-							switch(event) {
-							case 'message':
-								console.log(`[${date.toLocaleString()}] ${text}`);
-								break;
-							default: throw new Error(`Unhandled event: "${event}"`);
-							}
-						} catch (err) {
-							console.error(err);
+			socket.on('connection', client => {
+				console.log('New connection established');
+				client.send(JSON.stringify({message: 'Hello. How may I help you?', event: 'message'}));
+				rl.on('line', txt => client.send(JSON.stringify({message: txt, event: 'message'})));
+				rl.on('close', () => process.exit(0));
+				client.on('message', msg => {
+					try {
+						const {time, event, text} = JSON.parse(msg);
+						const date	= new Date(time);
+						switch(event) {
+						case 'message':
+							console.log(`[${date.toLocaleString()}] ${text}`);
+							break;
+						default: throw new Error(`Unhandled event: "${event}"`);
 						}
-					});
-					resolve(this);
+					} catch (err) {
+						console.error(err);
+					}
 				});
 			});
-		}
-
-		send({message = '', event = 'message'} = {}) {
-			this.client.send(JSON.stringify({message, event}));
-		}
-
-		message(message) {
-			this.send({message, event: 'message'});
-		}
-
-		ping() {
-			this.send({event: 'ping'});
+			return socket;
 		}
 	}
 
-	const socket = new Socket({port});
-	server.on('upgrade', socket.handleUpgrade);
-	console.log(`Listening on port ${port}`);
-	const client = await socket.connect();
-	console.log('New connection established');
-	client.message('Hello. How may I help you?');
-})();
+	Socket.connect(http.createServer(), ...args);
+})({
+	port: 3000,
+});
