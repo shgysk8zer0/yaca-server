@@ -30,6 +30,7 @@
 			const rl = readline.createInterface(process.stdin, process.stdout);
 
 			socket.on('connection', (client, con) => {
+				const ip = con.connection.remoteAddress;
 				console.log('New connection established');
 				client.send(JSON.stringify({message: 'Hello. How may I help you?', event: 'message'}));
 
@@ -41,15 +42,12 @@
 						const {time, event, text} = JSON.parse(msg);
 						const date	= new Date(time);
 						const timestamp = Date.parse(date);
+
 						switch(event) {
 						case 'message':
 							db.query(
 								'INSERT INTO `messages` (`text`, `timestamp`,`ip`) VALUES (:text, :timestamp, :ip)',
-								{
-									text,
-									timestamp,
-									ip: con.connection.remoteAddress
-								}
+								{text, timestamp, ip}
 							);
 							console.log(`[${date.toLocaleString()}] ${text}`);
 							break;
