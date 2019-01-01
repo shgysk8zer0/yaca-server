@@ -2,10 +2,24 @@
 	const bcrypt = require('bcryptjs');
 	const mysql = require('mysql');
 
+	function mySqlDate(date = new Date()) {
+		const year = date.getUTCFullYear();
+		const month = (date.getUTCMonth() + 1).toString().padStart(2, '0');
+		const day = date.getUTCDate().toString().padStart(2, '0');
+		const h = date.getUTCHours().toString().padStart(2, '0');
+		const m = date.getUTCMinutes().toString().padStart(2, '0');
+		const s = date.getUTCSeconds().toString().padStart(2, '0');
+		return `${year}-${month}-${day} ${h}:${m}:${s}`;
+	}
+
 	class User {
 		constructor(configFile = './config.json', key = 'mysql') {
 			this.db = mysql.createConnection(require(configFile)[key]);
 			this.db.connect();
+			this.id = NaN;
+			this.username = null;
+			this.created = null;
+			this.loggedIn = false;
 		}
 
 		async query(strings, ...values) {
@@ -25,7 +39,7 @@
 
 			const sql = [...gen(strings, values)].join('');
 			return new Promise((resolve, reject) => {
-				this.db.query(sql, (results, error) => {
+				this.db.query(sql, function(error, results) {
 					if (error instanceof Error) {
 						reject(error);
 					} else {
@@ -36,35 +50,64 @@
 		}
 
 		async register({username, password, created = new Date(), rounds = 10}) {
-			const hash = await bcrypt.hash(password, rounds);
-			const result = await this.query`INSERT INTO \`users\` (
-				\`username\`,
-				\`password\`,
-				\`created\`
-			) VALUES (
-				${username},
-				${hash},
-				${created.toISOString()}
-			);`;
+			try {
+				const hash = await bcrypt.hash(password, rounds);
+				const result = await this.query`INSERT INTO \`users\` (
+					\`username\`,
+					\`password\`,
+					\`created\`
+				) VALUES (
+					${username},
+					${hash},
+					${mySqlDate(created)}
+				);`;
 
-			return result;
+
+				if (result.affectedRows === 1) {
+					this.username = username;
+					this.created = created;
+					this.id = result.insertId;
+					this.loggedIn = true;
+				}
+			} catch (error) {
+				console.error(error);
+			}
+
+			return this;
 		}
 
 		async login({username, password}) {
-			const users = this.query`SELECT \`password\` AS \`hash\` FROM \`users\` WHERE \`username\` = ${username} LIMIT 1;`;
-			return bcrypt.compare(password, users[0].hash);
+			try {
+				const users = await this.query`SELECT \`username\`,
+					\`password\` AS \`hash\`,
+					\`created\`
+					FROM \`users\`
+					WHERE \`username\` = ${username}
+					LIMIT 1;`;
+				if (Array.isArray(users) && users.length === 1) {
+					if (bcrypt.compare(password, users[0].hash)) {
+						const {username, created} = users[0];
+						this.username = username;
+						this.created = created;
+						this.loggedIn = true;
+					} else {
+						throw new Error('User not found or password does not match');
+					}
+				}
+			} catch(error) {
+				console.error(error);
+			}
+			return this;
 		}
 	}
 
 	const user = new User();
-	return user.register({username, password});
-	// const userData = await user.register({username, password});
-	// return userData;
+	return user.login({username, password});
 })({
-	username: 'shgysk8zer0@gmail.com',
+	username: 'user4@example.com',
 	password: 'my-password-123',
-}).then(user => {
-	console.log(user);
+}).then(({username, created, loggedIn}) => {
+	console.log({username, created, loggedIn});
 	process.exit(0);
 }).catch(error => {
 	console.error(error);
