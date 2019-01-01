@@ -30,6 +30,7 @@
     "ws": "^6.1.2"
   },
   "devDependencies": {
+    "babel-eslint": "^10.0.1",
     "eslint": "^5.11.1",
     "eslint-plugin-async-await": "0.0.0",
     "eslint-plugin-babel": "^5.2.1"

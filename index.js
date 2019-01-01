@@ -16,7 +16,7 @@
 				socket.on('connection', (client1, {connection}) => {
 					client1.connection = connection;
 					// client1.send(JSON.stringify({message: 'Hello. How may I help you?', event: 'message'}));
-					client1.on('message', console.log);
+					// client1.on('message', msg => console.log(JSON.parse(msg)));
 					resolve(client1);
 				});
 			});
@@ -24,7 +24,7 @@
 			const client2 = await new Promise(resolve => {
 				socket.on('connection', (client2, {connection}) => {
 					client2.connection = connection;
-					client2.on('message', console.log);
+					// client2.on('message', msg => console.log(JSON.parse(msg)));
 					resolve(client2);
 				});
 			});
