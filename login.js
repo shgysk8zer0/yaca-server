@@ -1,6 +1,7 @@
 (async ({username, password}) => {
+	const {mysql} = require('./config.json');
 	const User = require('./User.js');
-	const user = new User();
+	const user = new User(mysql);
 	return user.login({username, password});
 })({
 	username: 'user4@example.com',

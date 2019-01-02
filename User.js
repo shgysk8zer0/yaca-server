@@ -11,47 +11,20 @@ function mySqlDate(date = new Date()) {
 	return `${year}-${month}-${day} ${h}:${m}:${s}`;
 }
 
-class User {
-	constructor(configFile = './config.json', key = 'mysql') {
-		this.db = new MySQL(require(configFile)[key]);
-		this.db.connect();
+class User extends MySQL {
+	constructor(...args) {
+		super(...args);
+		this.connect;
 		this.id = NaN;
 		this.username = null;
 		this.created = null;
 		this.loggedIn = false;
 	}
 
-	async query(strings, ...values) {
-		const db = this.db;
-		function* gen(strs, vals) {
-			let si = 0;
-			let vi = 0;
-			const len = strs.length + vals.length;
-			for (let i = 0; i < len; i++) {
-				if (i % 2 === 0) {
-					yield strs[si++];
-				} else {
-					yield db.escape(vals[vi++]);
-				}
-			}
-		}
-
-		const sql = [...gen(strings, values)].join('');
-		return new Promise((resolve, reject) => {
-			this.db.query(sql, function(error, results) {
-				if (error instanceof Error) {
-					reject(error);
-				} else {
-					resolve(results);
-				}
-			});
-		});
-	}
-
 	async register({username, password, created = new Date(), rounds = 10}) {
 		try {
 			const hash = await bcrypt.hash(password, rounds);
-			const result = await this.query`INSERT INTO \`users\` (
+			const result = await this.sql`INSERT INTO \`users\` (
 				\`username\`,
 				\`password\`,
 				\`created\`
@@ -77,7 +50,7 @@ class User {
 
 	async login({username, password}) {
 		try {
-			const users = await this.query`SELECT \`username\`,
+			const users = await this.sql`SELECT \`username\`,
 				\`password\` AS \`hash\`,
 				\`created\`
 				FROM \`users\`
