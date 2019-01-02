@@ -33,8 +33,9 @@ class MySQL {
 		});
 	}
 
-	async sql(strings, ...values) {
-		function* gen(db, strs, vals) {
+	parse(strings, ...values) {
+		const db = this;
+		function* gen(strs, vals) {
 			let si = 0;
 			let vi = 0;
 			const len = strs.length + vals.length;
@@ -42,19 +43,16 @@ class MySQL {
 				if (i % 2 === 0) {
 					yield strs[si++];
 				} else {
-					const val = vals[vi++];
-					if (typeof val === 'string') {
-						yield db.escape(val);
-					} else {
-						yield val;
-					}
-					yield vals[vi++];
+					yield db.escape(vals[vi++]);
 				}
 			}
 		}
+		return [...gen(strings, values)].join('');
+	}
 
-		const sql = [...gen(this, strings, values)].join('');
-		return this.query(sql);
+	async sql(strings, ...values) {
+		const query = this.parse(strings, values);
+		return this.query(query);
 	}
 }
 
