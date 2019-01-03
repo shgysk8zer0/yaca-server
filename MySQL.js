@@ -36,23 +36,34 @@ class MySQL {
 	parse(strings, ...values) {
 		const db = this;
 		function* gen(strs, vals) {
-			let si = 0;
-			let vi = 0;
-			const len = strs.length + vals.length;
-			for (let i = 0; i < len; i++) {
-				if (i % 2 === 0) {
-					yield strs[si++];
-				} else {
-					yield db.escape(vals[vi++]);
+			let i = 0;
+
+			while (strs[i] || vals[i]) {
+				if (strs[i]) {
+					yield strs[i];
 				}
+				if (vals[i]) {
+					yield db.escape(vals[i]);
+				}
+				i++;
 			}
 		}
-		return [...gen(strings, values)].join('');
+
+		const query = [...gen(strings, values)].join('');
+		return query;
 	}
 
 	async sql(strings, ...values) {
-		const query = this.parse(strings, values);
+		const query = this.parse(strings, ...values);
 		return this.query(query);
+	}
+
+	async insert(table, values = {}) {
+		table = `\`${table}\``;
+		const keys = Object.keys(values).map(key => `\`${key}\``);
+		const vals = Object.values(values).map(val => this.escape(val));
+		const query = `INSERT INTO ${table} (${keys.join(', ')}) VALUES (${vals.join(', ')});`;
+		return await this.query(query);
 	}
 }
 

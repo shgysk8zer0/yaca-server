@@ -24,9 +24,9 @@ DROP TABLE IF EXISTS `messages`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `messages` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `text` varchar(255) NOT NULL,
-  `timestamp` varchar(45) NOT NULL DEFAULT 'CURRENT_TIMESTAMP',
-  `ip` varchar(16) NOT NULL,
+  `message` varchar(255) NOT NULL,
+  `time` varchar(45) NOT NULL DEFAULT 'CURRENT_TIMESTAMP',
+  `ip` varchar(16),
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
