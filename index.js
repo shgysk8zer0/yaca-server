@@ -1,11 +1,37 @@
 const WebSocket = require('./WebSocket.js');
-const {createServer} = require('http');
+const Headers = require('./Headers.js');
+const http = require('http');
 const MySQL = require('./MySQL.js');
 const {mysql, socket} = require('./config.json');
 const MySQLTimestamp = require('./MySQLTimestamp.js');
-const server = createServer();
 const ws = new WebSocket(socket);
 const db = new MySQL(mysql);
+require('./shims.js');
+const server = http.createServer();
+
+async function parsePOST(req) {
+	let body = '';
+	return new Promise(resolve => {
+		req.on('data', chunk => body += chunk.toString());
+		req.on('end', () => resolve(JSON.parse(body)));
+	});
+}
+
+server.listen(8080);
+// const mysql      = new MySQL(config.mysql);
+
+server.on('request', async (req, resp) => {
+	const headers = new Headers(req.headers);
+	const url = new URL(req.url, `${req.connection.encrypted ? 'https' : 'http'}://${headers.get('host')}`);
+	const get = Object.fromEntries(url.searchParams.entries());
+	const post = await parsePOST(req);
+	const respHeaders = new Headers();
+	const bod = {url, get, post, method: req.method, headers, Accept: headers.get('Accept')};
+	console.log(bod);
+	respHeaders.set('Content-Type', 'application/json');
+	[...respHeaders.entries()].forEach(([key, val]) => resp.setHeader(key, val));
+	resp.end(JSON.stringify(bod));
+});
 
 server.on('upgrade', ws.handleUpgrade);
 console.log(`Listening on ${ws.options.host || '*'}:${ws.options.port}`);
