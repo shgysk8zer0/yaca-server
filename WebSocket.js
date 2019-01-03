@@ -9,6 +9,16 @@ class WebSocket extends ws.Server {
 		return this.clientsArray.find(client => client === search);
 	}
 
+	broadcast(msg, ...except) {
+		this.clients.forEach(client => {
+			if (client.readyState === ws.OPEN) {
+				if (except.length === 0 || ! except.includes(client)) {
+					client.send(msg);
+				}
+			}
+		});
+	}
+
 	async connection() {
 		return await new Promise(resolve => this.once('connection', resolve));
 	}
