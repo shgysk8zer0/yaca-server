@@ -4,7 +4,7 @@ const http = require('http');
 // const MySQL = require('./MySQL.js');
 // const {/*mysql, */socket} = require('./config.json');
 // const MySQLTimestamp = require('./MySQLTimestamp.js');
-const ws = new WebSocket({port: 3000});
+const ws = new WebSocket({port: 3000, host: 'yaca-server.herokuapp.com'});
 // const db = new MySQL(mysql);
 require('./shims.js');
 const server = http.createServer();
