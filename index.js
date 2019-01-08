@@ -8,7 +8,7 @@ const http = require('http');
 require('./shims.js');
 const server = http.createServer();
 // server.listen(8080);
-const ws = new WebSocket({server, port: 3000});
+const ws = new WebSocket({server, port: process.env.PORT || 3000});
 async function parsePOST(req) {
 	let body = '';
 	return new Promise(resolve => {
