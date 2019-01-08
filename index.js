@@ -4,11 +4,11 @@ const http = require('http');
 // const MySQL = require('./MySQL.js');
 // const {/*mysql, */socket} = require('./config.json');
 // const MySQLTimestamp = require('./MySQLTimestamp.js');
-const ws = new WebSocket({port: 443});
 // const db = new MySQL(mysql);
 require('./shims.js');
 const server = http.createServer();
-
+// server.listen(8080);
+const ws = new WebSocket({server, port: 3000});
 async function parsePOST(req) {
 	let body = '';
 	return new Promise(resolve => {
