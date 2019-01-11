@@ -8,13 +8,26 @@ const http = require('http');
 require('./shims.js');
 const server = http.createServer();
 // server.listen(8080);
-const ws = new WebSocket({server, port: process.env.PORT || 3000});
+const ws = new WebSocket({port: 3000});
+const ws2 = new WebSocket({port: 3001});
+
 async function parsePOST(req) {
 	let body = '';
 	return new Promise(resolve => {
 		req.on('data', chunk => body += chunk.toString());
 		req.on('end', () => resolve(JSON.parse(body)));
 	});
+}
+
+async function* connections(...sockets) {
+	while (true) {
+		const clients = await Promise.all(sockets.map(async socket => await socket.connection()));
+		if (clients.every(client => client.readyState === client.OPEN)) {
+			yield clients;
+		} else {
+			clients.forEach(client => client.close(1011, 'Connection failed'));
+		}
+	}
 }
 
 // server.listen(8080);
@@ -37,7 +50,7 @@ server.on('upgrade', ws.handleUpgrade);
 console.log(`Listening on ${ws.options.host || '*'}:${ws.options.port}`);
 
 Promise.resolve().then(async () => {
-	for await (const [client1, client2] of ws.clientPairs()) {
+	for await (const [client1, client2] of connections(ws, ws2)) {
 		client1.on('message', async msg => {
 			client2.send(msg);
 			// let {message, time} = JSON.parse(msg);

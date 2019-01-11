@@ -1,6 +1,14 @@
 const ws = require('ws');
 
 class WebSocket extends ws.Server {
+	constructor(...args) {
+		super(...args);
+		this.on('connection', client => {
+			client.message = (async data => {
+				client.send(JSON.stringify(data), {}, (...args) => console.log(args));
+			});
+		});
+	}
 	get clientsArray() {
 		return [...this.clients];
 	}
@@ -11,7 +19,7 @@ class WebSocket extends ws.Server {
 
 	broadcast(msg, ...except) {
 		this.clients.forEach(client => {
-			if (client.readyState === ws.OPEN) {
+			if (client.readyState === client.OPEN) {
 				if (except.length === 0 || ! except.includes(client)) {
 					client.send(msg);
 				}
@@ -41,7 +49,7 @@ class WebSocket extends ws.Server {
 	}
 
 	async *clientPairs() {
-		while(true) {
+		while (true) {
 			yield await this.getClientSet(2);
 		}
 	}
