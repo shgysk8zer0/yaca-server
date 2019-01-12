@@ -51,6 +51,8 @@ console.log(`Listening on ${ws.options.host || '*'}:${ws.options.port}`);
 
 Promise.resolve().then(async () => {
 	for await (const [client1, client2] of connections(ws, ws2)) {
+		client1.send(JSON.stringify({event: 'paired'}));
+		client2.send(JSON.stringify({event: 'paired'}));
 		client1.on('message', async msg => {
 			client2.send(msg);
 			// let {message, time} = JSON.parse(msg);
